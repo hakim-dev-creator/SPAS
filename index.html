@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة المناوبات</title>
+    
+    <style>
+        :root {
+            --bg-color: #f3f5f9;
+            --card-bg: #ffffff;
+            --text-main: #2c3e50;
+            --text-sub: #7f8c8d;
+            
+            /* لوحة ألوان الأفواج */
+            --col-a: #1e3c72;
+            --col-b: #a41b46;
+            --col-c: #0f5132;
+            --col-d: #4a148c;
+
+            --sidebar-bg: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0; padding: 0; color: var(--text-main);
+            padding-bottom: 80px;
+        }
+
+        .icon { width: 18px; height: 18px; fill: currentColor; vertical-align: middle; }
+        .icon-lg { width: 24px; height: 24px; }
+
+        /* --- Header --- */
+        .app-header {
+            background: radial-gradient(circle at 50% 100%, #3b4147 0%, #1c2024 100%);
+            color: white; padding: 30px 20px 55px 20px;
+            text-align: center; border-bottom-left-radius: 45px; border-bottom-right-radius: 45px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            position: relative; z-index: 1;
+        }
+        .app-title { font-size: 1.5rem; font-weight: 300; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 10px; opacity: 0.9; }
+
+        /* --- Controls --- */
+        .controls-container {
+            display: flex; gap: 15px; justify-content: center;
+            margin-top: -30px; padding: 0 25px; position: relative; z-index: 10;
+        }
+        .btn {
+            border: none; padding: 12px 20px; border-radius: 18px;
+            font-family: inherit; font-weight: 600; cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08); flex: 1; font-size: 0.9rem;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            backdrop-filter: blur(10px);
+        }
+        .btn:active { transform: scale(0.96); }
+        .btn-dark { background: rgba(255,255,255,0.95); color: #333; }
+        .btn-primary { 
+            background: linear-gradient(45deg, #141e30, #243b55); 
+            color: white; border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* --- Group Cards --- */
+        .groups-summary { 
+            display: flex; gap: 12px; padding: 40px 15px 15px 15px; 
+        }
+        .group-card {
+            background: white; flex: 1; padding: 25px 5px 15px 5px; border-radius: 20px;
+            text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            position: relative; overflow: visible;
+            border: 1px solid rgba(0,0,0,0.02);
+        }
+
+        /* --- Floating Orbs --- */
+        .magic-orb {
+            position: absolute;
+            top: -25px; left: 50%; transform: translateX(-50%);
+            width: 46px; height: 46px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 400; font-size: 1.2rem; color: white;
+            z-index: 5;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15), inset 0 4px 8px rgba(255,255,255,0.4);
+            border: 2px solid rgba(255,255,255,0.8);
+            animation: gemstoneFloat 4s ease-in-out infinite;
+        }
+
+        .orb-a { background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%); }
+        .orb-b { background: linear-gradient(135deg, #8e44ad 0%, #c0392b 100%); }
+        .orb-c { background: linear-gradient(135deg, #134e5e 0%, #71b280 100%); }
+        .orb-d { background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%); }
+
+        @keyframes gemstoneFloat {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-6px); }
+        }
+
+        .score-label {
+            position: absolute; top: -38px; left: 50%; transform: translateX(-50%);
+            font-size: 0.65rem; color: #aaa; letter-spacing: 0.5px;
+            white-space: nowrap; opacity: 0; transition: 0.3s; pointer-events: none;
+        }
+        .group-card:hover .score-label { opacity: 1; top: -45px; }
+
+        .gc-title { font-size: 0.75rem; color: #95a5a6; font-weight: 600; margin-top: 10px; margin-bottom: 4px; }
+        .gc-val { font-size: 1.1rem; font-weight: 800; color: #2c3e50; }
+
+        /* --- Table --- */
+        .schedule-container {
+            margin: 0 15px; background: white; border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.04); overflow: hidden; 
+            border: 1px solid #f0f0f0;
+        }
+        .schedule-table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
+        .schedule-table th { padding: 18px 2px; background: #fff; color: #95a5a6; font-size: 0.8rem; border-bottom: 1px solid #eee; }
+        .schedule-table td { padding: 14px 0; text-align: center; font-weight: 600; font-size: 0.95rem; border-bottom: 1px solid #f9f9f9; }
+
+        .row-today td {
+            background-color: #ffffff;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.05);
+            transform: scale(1.015);
+            position: relative; z-index: 10;
+        }
+        .row-today td:nth-child(1), .row-today td:nth-child(2) {
+            background: linear-gradient(135deg, #2c3e50 0%, #4ca1af 100%);
+            color: white !important;
+        }
+
+        /* --- Status Colors --- */
+        .txt-nahar { color: #2c3e50; }
+        .txt-layl { color: #c0392b; font-weight: 800; }
+        .txt-r1 { color: #bdc3c7; font-size: 0.85rem; }
+        .txt-r2 { color: #d0d3d4; font-size: 0.85rem; }
+
+        /* --- Modal --- */
+        .modal { display: none; position: fixed; z-index: 99; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 24px; width: 85%; max-width: 340px; }
+        .setting-row { display: flex; justify-content: space-between; margin-bottom: 15px; align-items: center; }
+        select, input { padding: 8px; border-radius: 10px; border: 1px solid #eee; }
+    </style>
+</head>
+<body>
+
+    <svg style="display: none;">
+        <symbol id="icon-calendar" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm-8 4H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z"/></symbol>
+    </svg>
+
+    <div class="app-header">
+        <div class="app-title">
+            <svg class="icon icon-lg"><use xlink:href="#icon-calendar"></use></svg>
+            برنامج المناوبات
+        </div>
+    </div>
+
+    <div class="controls-container">
+        <button class="btn btn-dark" onclick="openSettings()">إعدادات</button>
+        <button class="btn btn-primary" onclick="goToCurrentMonth()">اليوم</button>
+    </div>
+
+    <div class="groups-summary">
+        <div class="group-card"><div class="magic-orb orb-a" id="score-a">0</div><div class="gc-title">فوج أ</div><div class="gc-val" id="head-a">-</div></div>
+        <div class="group-card"><div class="magic-orb orb-b" id="score-b">0</div><div class="gc-title">فوج ب</div><div class="gc-val" id="head-b">-</div></div>
+        <div class="group-card"><div class="magic-orb orb-c" id="score-c">0</div><div class="gc-title">فوج ج</div><div class="gc-val" id="head-c">-</div></div>
+        <div class="group-card"><div class="magic-orb orb-d" id="score-d">0</div><div class="gc-title">فوج د</div><div class="gc-val" id="head-d">-</div></div>
+    </div>
+
+    <div style="text-align:center; margin: 20px 0;">
+        <button onclick="changeMonth(-1)">◀</button>
+        <span id="monthDisplay" style="font-weight:bold; margin:0 15px; font-size:1.2rem;">--</span>
+        <button onclick="changeMonth(1)">▶</button>
+    </div>
+
+    <div class="schedule-container">
+        <table class="schedule-table">
+            <thead>
+                <tr><th>يوم</th><th>#</th><th>أ</th><th>ب</th><th>ج</th><th>د</th></tr>
+            </thead>
+            <tbody id="calendarBody"></tbody>
+        </table>
+    </div>
+
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <h3>إعدادات البداية</h3>
+            <div class="setting-row"><label>فوج أ</label><select id="startA"><option value="0">نهار</option><option value="1">ليل</option><option value="2">ر1</option><option value="3">ر2</option></select></div>
+            <div class="setting-row"><label>فوج ب</label><select id="startB"><option value="0">نهار</option><option value="1">ليل</option><option value="2">ر1</option><option value="3">ر2</option></select></div>
+            <div class="setting-row"><label>فوج ج</label><select id="startC"><option value="0">نهار</option><option value="1">ليل</option><option value="2">ر1</option><option value="3">ر2</option></select></div>
+            <div class="setting-row"><label>فوج د</label><select id="startD"><option value="0">نهار</option><option value="1">ليل</option><option value="2">ر1</option><option value="3">ر2</option></select></div>
+            <div class="setting-row"><label>السنة</label><input type="number" id="settingYear"></div>
+            <button class="btn btn-primary" style="width:100%" onclick="saveSettings()">حفظ</button>
+        </div>
+    </div>
+
+    <script>
+        const SHIFTS = [
+            { code: 0, label: 'نهار', class: 'txt-nahar' },
+            { code: 1, label: 'ليل', class: 'txt-layl' },
+            { code: 2, label: 'ر1', class: 'txt-r1' },
+            { code: 3, label: 'ر2', class: 'txt-r2' }
+        ];
+        const monthNames = ["جانفي", "فيفري", "مارس", "أفريل", "ماي", "جوان", "جويلية", "أوت", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+        const dayNamesShort = ["أحد", "إثن", "ثلا", "أرب", "خمي", "جمع", "سبت"];
+
+        let currentYear = new Date().getFullYear();
+        let currentMonth = new Date().getMonth();
+        let groupConfig = { A: 2, B: 1, C: 0, D: 3 };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSettings();
+            renderCalendar();
+        });
+
+        function getShiftForDate(startIdx, dateObj) {
+            const start = new Date(currentYear, 0, 1);
+            const diff = Math.floor((dateObj - start) / 86400000);
+            let idx = (startIdx + diff) % 4;
+            if(idx < 0) idx += 4;
+            return SHIFTS[idx];
+        }
+
+        function renderCalendar() {
+            const tbody = document.getElementById('calendarBody');
+            tbody.innerHTML = '';
+            document.getElementById('monthDisplay').innerText = `${monthNames[currentMonth]} ${currentYear}`;
+            
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const today = new Date();
+            today.setHours(0,0,0,0);
+
+            let scores = { A: 0, B: 0, C: 0, D: 0 };
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateObj = new Date(currentYear, currentMonth, day);
+                const shiftA = getShiftForDate(groupConfig.A, dateObj);
+                const shiftB = getShiftForDate(groupConfig.B, dateObj);
+                const shiftC = getShiftForDate(groupConfig.C, dateObj);
+                const shiftD = getShiftForDate(groupConfig.D, dateObj);
+
+                [shiftA, shiftB, shiftC, shiftD].forEach((s, i) => {
+                    const group = ['A','B','C','D'][i];
+                    if(s.code === 0) scores[group] += 1;
+                    if(s.code === 1) scores[group] += 2;
+                });
+
+                const tr = document.createElement('tr');
+                if (dateObj.getTime() === today.getTime()) {
+                    tr.className = 'row-today';
+                    document.getElementById('head-a').innerText = shiftA.label;
+                    document.getElementById('head-b').innerText = shiftB.label;
+                    document.getElementById('head-c').innerText = shiftC.label;
+                    document.getElementById('head-d').innerText = shiftD.label;
+                }
+
+                tr.innerHTML = `<td>${dayNamesShort[dateObj.getDay()]}</td><td>${day}</td>
+                    <td class="${shiftA.class}">${shiftA.label}</td>
+                    <td class="${shiftB.class}">${shiftB.label}</td>
+                    <td class="${shiftC.class}">${shiftC.label}</td>
+                    <td class="${shiftD.class}">${shiftD.label}</td>`;
+                tbody.appendChild(tr);
+            }
+
+            ['a','b','c','d'].forEach(g => {
+                const scoreEl = document.getElementById(`score-${g}`);
+                if (scoreEl) scoreEl.innerText = scores[g.toUpperCase()];
+            });
+        }
+
+        function changeMonth(s) {
+            currentMonth += s;
+            if(currentMonth > 11) { currentMonth=0; currentYear++; }
+            else if(currentMonth < 0) { currentMonth=11; currentYear--; }
+            renderCalendar();
+        }
+
+        function goToCurrentMonth() {
+            const n = new Date(); currentMonth = n.getMonth(); currentYear = n.getFullYear();
+            renderCalendar();
+            setTimeout(() => {
+                const el = document.querySelector('.row-today');
+                if(el) el.scrollIntoView({behavior:'smooth', block:'center'});
+            }, 300);
+        }
+
+        function openSettings() { document.getElementById('settingsModal').style.display = 'flex'; }
+        
+        function saveSettings() {
+            groupConfig.A = parseInt(document.getElementById('startA').value);
+            groupConfig.B = parseInt(document.getElementById('startB').value);
+            groupConfig.C = parseInt(document.getElementById('startC').value);
+            groupConfig.D = parseInt(document.getElementById('startD').value);
+            currentYear = parseInt(document.getElementById('settingYear').value);
+            localStorage.setItem('shiftDataMaster', JSON.stringify({config: groupConfig, view: {year: currentYear, month: currentMonth}}));
+            document.getElementById('settingsModal').style.display = 'none';
+            renderCalendar();
+        }
+
+        function loadSettings() {
+            const saved = localStorage.getItem('shiftDataMaster');
+            if(saved) {
+                const data = JSON.parse(saved);
+                groupConfig = data.config;
+                currentYear = data.view.year;
+            }
+            document.getElementById('settingYear').value = currentYear;
+        }
+    </script>
+</body>
+</html>
