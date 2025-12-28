@@ -1,268 +1,210 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام إدارة المناوبات</title>
-    
+    <title>نظام المناوبات الشامل 3D</title>
     <style>
         :root {
-            --bg-color: #f3f5f9;
-            --card-bg: #ffffff;
+            --bg-color: #e0e5ec;
             --text-main: #2c3e50;
-            --text-sub: #7f8c8d;
-            
-            /* لوحة ألوان الأفواج */
-            --col-a: #1e3c72;
-            --col-b: #a41b46;
-            --col-c: #0f5132;
-            --col-d: #4a148c;
-
-            --sidebar-bg: #f8f9fa;
+            --gem-a: linear-gradient(135deg, #1e3c72, #2a5298);
+            --gem-b: linear-gradient(135deg, #b92b27, #1565C0);
+            --gem-c: linear-gradient(135deg, #134e5e, #71b280);
+            --gem-d: linear-gradient(135deg, #6a11cb, #2575fc);
+            /* ظلال النيومورفيزم الفاخرة */
+            --shadow-out: 9px 9px 16px rgba(163,177,198,0.6), -9px -9px 16px rgba(255,255,255, 0.5);
+            --shadow-in: inset 6px 6px 12px rgba(163,177,198,0.5), inset -6px -6px 12px rgba(255,255,255,0.8);
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
             background-color: var(--bg-color);
             margin: 0; padding: 0; color: var(--text-main);
-            padding-bottom: 80px;
+            padding-bottom: 50px; overflow-x: hidden;
         }
 
-        .icon { width: 18px; height: 18px; fill: currentColor; vertical-align: middle; }
-        .icon-lg { width: 24px; height: 24px; }
-
-        /* --- Header --- */
         .app-header {
             background: radial-gradient(circle at 50% 100%, #3b4147 0%, #1c2024 100%);
-            color: white; padding: 30px 20px 55px 20px;
-            text-align: center; border-bottom-left-radius: 45px; border-bottom-right-radius: 45px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
-            position: relative; z-index: 1;
+            color: white; padding: 30px 15px 70px 15px;
+            text-align: center; border-bottom-left-radius: 50px; border-bottom-right-radius: 50px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3); position: relative;
         }
-        .app-title { font-size: 1.5rem; font-weight: 300; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 10px; opacity: 0.9; }
 
-        /* --- Controls --- */
+        .header-title {
+            margin: 0; font-size: 2rem; font-weight: 800;
+            background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        /* أزرار التحكم العلوية 3D */
         .controls-container {
-            display: flex; gap: 15px; justify-content: center;
-            margin-top: -30px; padding: 0 25px; position: relative; z-index: 10;
-        }
-        .btn {
-            border: none; padding: 12px 20px; border-radius: 18px;
-            font-family: inherit; font-weight: 600; cursor: pointer;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08); flex: 1; font-size: 0.9rem;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-            backdrop-filter: blur(10px);
-        }
-        .btn:active { transform: scale(0.96); }
-        .btn-dark { background: rgba(255,255,255,0.95); color: #333; }
-        .btn-primary { 
-            background: linear-gradient(45deg, #141e30, #243b55); 
-            color: white; border: 1px solid rgba(255,255,255,0.1);
+            display: flex; gap: 20px; justify-content: center;
+            margin: -40px auto 30px auto; padding: 0 15px; max-width: 450px;
+            position: relative; z-index: 100;
         }
 
-        /* --- Group Cards --- */
+        .btn-3d {
+            flex: 1; height: 60px; border-radius: 20px; border: 3px solid var(--bg-color);
+            background: var(--bg-color); font-weight: 800; cursor: pointer;
+            box-shadow: var(--shadow-out); transition: 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .btn-3d:active { box-shadow: var(--shadow-in); transform: scale(0.96); }
+
+        /* كروت الأفواج مع حساب (الليل × 2 + النهار) */
         .groups-summary { 
-            display: flex; gap: 12px; padding: 40px 15px 15px 15px; 
+            display: grid; grid-template-columns: repeat(2, 1fr); 
+            gap: 40px 20px; padding: 25px; max-width: 600px; margin: 0 auto;
         }
+
         .group-card {
-            background: white; flex: 1; padding: 25px 5px 15px 5px; border-radius: 20px;
-            text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.03);
-            position: relative; overflow: visible;
-            border: 1px solid rgba(0,0,0,0.02);
+            background: var(--bg-color); padding: 40px 5px 20px 5px; border-radius: 30px;
+            text-align: center; box-shadow: var(--shadow-out); position: relative;
         }
 
-        /* --- Floating Orbs --- */
         .magic-orb {
-            position: absolute;
-            top: -25px; left: 50%; transform: translateX(-50%);
-            width: 46px; height: 46px;
-            border-radius: 50%;
+            position: absolute; top: -30px; left: 50%; transform: translateX(-50%);
+            width: 65px; height: 65px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-weight: 400; font-size: 1.2rem; color: white;
-            z-index: 5;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.15), inset 0 4px 8px rgba(255,255,255,0.4);
-            border: 2px solid rgba(255,255,255,0.8);
-            animation: gemstoneFloat 4s ease-in-out infinite;
+            font-size: 2rem; font-weight: 900; color: white;
+            border: 5px solid var(--bg-color); box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
 
-        .orb-a { background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%); }
-        .orb-b { background: linear-gradient(135deg, #8e44ad 0%, #c0392b 100%); }
-        .orb-c { background: linear-gradient(135deg, #134e5e 0%, #71b280 100%); }
-        .orb-d { background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%); }
+        .score-box { margin-bottom: 5px; }
+        .score-label { font-size: 0.8rem; color: #7f8c8d; font-weight: 700; }
+        .score-val { font-size: 1.7rem; font-weight: 900; color: #1c2024; display: block; }
+        .gc-val { font-size: 1.2rem; font-weight: 800; color: #1e3c72; border-top: 1px dashed #ccc; margin-top: 10px; padding-top: 10px; }
 
-        @keyframes gemstoneFloat {
-            0%, 100% { transform: translateX(-50%) translateY(0); }
-            50% { transform: translateX(-50%) translateY(-6px); }
+        /* أسهم التنقل المتساوية 3D */
+        .nav-month { display: flex; align-items: center; justify-content: center; gap: 30px; margin: 40px 0; }
+        .arrow-3d {
+            width: 60px; height: 60px; border-radius: 18px; border: none;
+            background: var(--bg-color); box-shadow: var(--shadow-out);
+            cursor: pointer; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; transition: 0.3s;
         }
+        .arrow-3d:active { box-shadow: var(--shadow-in); color: #b38728; }
+        .month-label { font-size: 1.8rem; font-weight: 900; min-width: 180px; text-align: center; }
 
-        .score-label {
-            position: absolute; top: -38px; left: 50%; transform: translateX(-50%);
-            font-size: 0.65rem; color: #aaa; letter-spacing: 0.5px;
-            white-space: nowrap; opacity: 0; transition: 0.3s; pointer-events: none;
-        }
-        .group-card:hover .score-label { opacity: 1; top: -45px; }
-
-        .gc-title { font-size: 0.75rem; color: #95a5a6; font-weight: 600; margin-top: 10px; margin-bottom: 4px; }
-        .gc-val { font-size: 1.1rem; font-weight: 800; color: #2c3e50; }
-
-        /* --- Table --- */
+        /* الجدول وتنسيق صف اليوم البراق */
         .schedule-container {
-            margin: 0 15px; background: white; border-radius: 24px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.04); overflow: hidden; 
-            border: 1px solid #f0f0f0;
+            width: 95%; margin: 20px auto; border-radius: 35px; overflow: hidden;
+            background: var(--bg-color); box-shadow: var(--shadow-out);
         }
-        .schedule-table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
-        .schedule-table th { padding: 18px 2px; background: #fff; color: #95a5a6; font-size: 0.8rem; border-bottom: 1px solid #eee; }
-        .schedule-table td { padding: 14px 0; text-align: center; font-weight: 600; font-size: 0.95rem; border-bottom: 1px solid #f9f9f9; }
+        .schedule-table { width: 100%; border-collapse: collapse; text-align: center; }
+        .schedule-table th { padding: 20px; font-size: 0.9rem; color: #888; }
+        .schedule-table td { padding: 16px 5px; font-weight: 700; border-bottom: 1px solid rgba(0,0,0,0.02); }
 
-        .row-today td {
-            background-color: #ffffff;
-            box-shadow: 0 15px 30px rgba(0,0,0,0.05);
-            transform: scale(1.015);
-            position: relative; z-index: 10;
+        /* شريط اليوم الثلاثي الأبعاد والبراق */
+        .row-today {
+            background: linear-gradient(145deg, #ffffff 0%, #f2d06b 50%, #d4af37 100%) !important;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2), inset 0 2px 5px rgba(255,255,255,0.8) !important;
+            transform: scale(1.02);
+            z-index: 10;
+            position: relative;
         }
-        .row-today td:nth-child(1), .row-today td:nth-child(2) {
-            background: linear-gradient(135deg, #2c3e50 0%, #4ca1af 100%);
-            color: white !important;
-        }
+        .row-today td { color: #1a1c20 !important; font-weight: 900 !important; border: none !important; }
+        .row-today td:first-child { background: #1c2024 !important; color: #f2d06b !important; border-radius: 0 15px 15px 0; }
+        .row-today td:last-child { border-radius: 15px 0 0 15px; }
 
-        /* --- Status Colors --- */
-        .txt-nahar { color: #2c3e50; }
-        .txt-layl { color: #c0392b; font-weight: 800; }
-        .txt-r1 { color: #bdc3c7; font-size: 0.85rem; }
-        .txt-r2 { color: #d0d3d4; font-size: 0.85rem; }
+        .txt-layl { color: #c0392b; }
+        .txt-nahar { color: #1e3c72; }
 
-        /* --- Modal --- */
-        .modal { display: none; position: fixed; z-index: 99; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); align-items: center; justify-content: center; }
-        .modal-content { background: white; padding: 30px; border-radius: 24px; width: 85%; max-width: 340px; }
-        .setting-row { display: flex; justify-content: space-between; margin-bottom: 15px; align-items: center; }
-        select, input { padding: 8px; border-radius: 10px; border: 1px solid #eee; }
+        /* النافذة المنبثقة */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); align-items: center; justify-content: center; }
+        .modal-content { background: var(--bg-color); padding: 40px; border-radius: 35px; width: 85%; max-width: 350px; box-shadow: var(--shadow-out); }
     </style>
 </head>
 <body>
 
-    <svg style="display: none;">
-        <symbol id="icon-calendar" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm-8 4H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z"/></symbol>
-    </svg>
-
     <div class="app-header">
-        <div class="app-title">
-            <svg class="icon icon-lg"><use xlink:href="#icon-calendar"></use></svg>
-            برنامج المناوبات
-        </div>
+        <h1 class="header-title">نظام المناوبات الشامل</h1>
     </div>
 
     <div class="controls-container">
-        <button class="btn btn-dark" onclick="openSettings()">إعدادات</button>
-        <button class="btn btn-primary" onclick="goToCurrentMonth()">اليوم</button>
+        <button class="btn-3d" onclick="openSettings()">⚙️ ضبط اليوم</button>
+        <button class="btn-3d" onclick="goToCurrentMonth()">📅 اليوم</button>
     </div>
 
     <div class="groups-summary">
-        <div class="group-card"><div class="magic-orb orb-a" id="score-a">0</div><div class="gc-title">فوج أ</div><div class="gc-val" id="head-a">-</div></div>
-        <div class="group-card"><div class="magic-orb orb-b" id="score-b">0</div><div class="gc-title">فوج ب</div><div class="gc-val" id="head-b">-</div></div>
-        <div class="group-card"><div class="magic-orb orb-c" id="score-c">0</div><div class="gc-title">فوج ج</div><div class="gc-val" id="head-c">-</div></div>
-        <div class="group-card"><div class="magic-orb orb-d" id="score-d">0</div><div class="gc-title">فوج د</div><div class="gc-val" id="head-d">-</div></div>
+        <div class="group-card"><div class="magic-orb" style="background:var(--gem-a)">أ</div><div class="score-box"><span class="score-label">أيام العمل</span><span class="score-val" id="total-a">0</span></div><div class="gc-val" id="head-a">-</div></div>
+        <div class="group-card"><div class="magic-orb" style="background:var(--gem-b)">ب</div><div class="score-box"><span class="score-label">أيام العمل</span><span class="score-val" id="total-b">0</span></div><div class="gc-val" id="head-b">-</div></div>
+        <div class="group-card"><div class="magic-orb" style="background:var(--gem-c)">ج</div><div class="score-box"><span class="score-label">أيام العمل</span><span class="score-val" id="total-c">0</span></div><div class="gc-val" id="head-c">-</div></div>
+        <div class="group-card"><div class="magic-orb" style="background:var(--gem-d)">د</div><div class="score-box"><span class="score-label">أيام العمل</span><span class="score-val" id="total-d">0</span></div><div class="gc-val" id="head-d">-</div></div>
     </div>
 
-    <div style="text-align:center; margin: 20px 0;">
-        <button onclick="changeMonth(-1)">◀</button>
-        <span id="monthDisplay" style="font-weight:bold; margin:0 15px; font-size:1.2rem;">--</span>
-        <button onclick="changeMonth(1)">▶</button>
+    <div class="nav-month">
+        <button class="arrow-3d" onclick="changeMonth(-1)">⮕</button>
+        <div class="month-label" id="monthDisplay">--</div>
+        <button class="arrow-3d" onclick="changeMonth(1)">⬅</button>
     </div>
 
     <div class="schedule-container">
         <table class="schedule-table">
-            <thead>
-                <tr><th>يوم</th><th>#</th><th>أ</th><th>ب</th><th>ج</th><th>د</th></tr>
-            </thead>
+            <thead><tr><th>#</th><th>أ</th><th>ب</th><th>ج</th><th>د</th></tr></thead>
             <tbody id="calendarBody"></tbody>
         </table>
     </div>
 
     <div id="settingsModal" class="modal">
         <div class="modal-content">
-            <h3>إعدادات البداية</h3>
-            <div class="setting-row"><label>فوج أ</label><select id="startA"><option value="0">نهار</option><option value="1">ليل</option><option value="2">ر1</option><option value="3">ر2</option></select></div>
-            <div class="setting-row"><label>فوج ب</label><select id="startB"><option value="0">نهار</option><option value="1">ليل</option><option value="2">ر1</option><option value="3">ر2</option></select></div>
-            <div class="setting-row"><label>فوج ج</label><select id="startC"><option value="0">نهار</option><option value="1">ليل</option><option value="2">ر1</option><option value="3">ر2</option></select></div>
-            <div class="setting-row"><label>فوج د</label><select id="startD"><option value="0">نهار</option><option value="1">ليل</option><option value="2">ر1</option><option value="3">ر2</option></select></div>
-            <div class="setting-row"><label>السنة</label><input type="number" id="settingYear"></div>
-            <button class="btn btn-primary" style="width:100%" onclick="saveSettings()">حفظ</button>
+            <h3 style="text-align:center; margin-bottom: 25px;">إعدادات الحالة المرجعية</h3>
+            <div id="settingsInputs"></div>
+            <button class="btn-3d" style="width:100%; margin-top:25px; background:#1c2024; color:white;" onclick="saveSettings()">حفظ وتحديث</button>
+            <button class="btn-3d" style="width:100%; margin-top:10px;" onclick="closeSettings()">إلغاء</button>
         </div>
     </div>
 
     <script>
         const SHIFTS = [
-            { code: 0, label: 'نهار', class: 'txt-nahar' },
-            { code: 1, label: 'ليل', class: 'txt-layl' },
-            { code: 2, label: 'ر1', class: 'txt-r1' },
-            { code: 3, label: 'ر2', class: 'txt-r2' }
+            {code:0, label:'نهار', class:'txt-nahar'},
+            {code:1, label:'ليل', class:'txt-layl'},
+            {code:2, label:'ر1', class:''},
+            {code:3, label:'ر2', class:''}
         ];
         const monthNames = ["جانفي", "فيفري", "مارس", "أفريل", "ماي", "جوان", "جويلية", "أوت", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
-        const dayNamesShort = ["أحد", "إثن", "ثلا", "أرب", "خمي", "جمع", "سبت"];
-
         let currentYear = new Date().getFullYear();
         let currentMonth = new Date().getMonth();
-        let groupConfig = { A: 2, B: 1, C: 0, D: 3 };
-
-        document.addEventListener('DOMContentLoaded', () => {
-            loadSettings();
-            renderCalendar();
-        });
-
-        function getShiftForDate(startIdx, dateObj) {
-            const start = new Date(currentYear, 0, 1);
-            const diff = Math.floor((dateObj - start) / 86400000);
-            let idx = (startIdx + diff) % 4;
-            if(idx < 0) idx += 4;
-            return SHIFTS[idx];
-        }
+        let groupConfig = { A: 0, B: 1, C: 2, D: 3 };
+        let referenceDate = new Date(); referenceDate.setHours(0,0,0,0);
 
         function renderCalendar() {
             const tbody = document.getElementById('calendarBody');
             tbody.innerHTML = '';
             document.getElementById('monthDisplay').innerText = `${monthNames[currentMonth]} ${currentYear}`;
-            
             const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-            const today = new Date();
-            today.setHours(0,0,0,0);
-
-            let scores = { A: 0, B: 0, C: 0, D: 0 };
+            const today = new Date(); today.setHours(0,0,0,0);
+            let counters = {A:{d:0,n:0},B:{d:0,n:0},C:{d:0,n:0},D:{d:0,n:0}};
 
             for (let day = 1; day <= daysInMonth; day++) {
                 const dateObj = new Date(currentYear, currentMonth, day);
-                const shiftA = getShiftForDate(groupConfig.A, dateObj);
-                const shiftB = getShiftForDate(groupConfig.B, dateObj);
-                const shiftC = getShiftForDate(groupConfig.C, dateObj);
-                const shiftD = getShiftForDate(groupConfig.D, dateObj);
-
-                [shiftA, shiftB, shiftC, shiftD].forEach((s, i) => {
-                    const group = ['A','B','C','D'][i];
-                    if(s.code === 0) scores[group] += 1;
-                    if(s.code === 1) scores[group] += 2;
+                const diff = Math.round((dateObj.getTime() - referenceDate.getTime()) / 86400000);
+                
+                const getS = (cfg) => {
+                    let idx = (cfg + diff) % 4;
+                    while (idx < 0) idx += 4;
+                    return SHIFTS[idx];
+                };
+                
+                const s = { A: getS(groupConfig.A), B: getS(groupConfig.B), C: getS(groupConfig.C), D: getS(groupConfig.D) };
+                ['A','B','C','D'].forEach(g => { 
+                    if(s[g].code == 0) counters[g].d++; 
+                    if(s[g].code == 1) counters[g].n++; 
                 });
 
                 const tr = document.createElement('tr');
-                if (dateObj.getTime() === today.getTime()) {
+                if(dateObj.getTime() === today.getTime()){
                     tr.className = 'row-today';
-                    document.getElementById('head-a').innerText = shiftA.label;
-                    document.getElementById('head-b').innerText = shiftB.label;
-                    document.getElementById('head-c').innerText = shiftC.label;
-                    document.getElementById('head-d').innerText = shiftD.label;
+                    ['A','B','C','D'].forEach(g => document.getElementById(`head-${g.toLowerCase()}`).innerText = s[g].label);
                 }
-
-                tr.innerHTML = `<td>${dayNamesShort[dateObj.getDay()]}</td><td>${day}</td>
-                    <td class="${shiftA.class}">${shiftA.label}</td>
-                    <td class="${shiftB.class}">${shiftB.label}</td>
-                    <td class="${shiftC.class}">${shiftC.label}</td>
-                    <td class="${shiftD.class}">${shiftD.label}</td>`;
+                tr.innerHTML = `<td>${day}</td><td class="${s.A.class}">${s.A.label}</td><td class="${s.B.class}">${s.B.label}</td><td class="${s.C.class}">${s.C.label}</td><td class="${s.D.class}">${s.D.label}</td>`;
                 tbody.appendChild(tr);
             }
 
+            // تحديث رؤوس القائمة (المجموع = نهار + ليل × 2)
             ['a','b','c','d'].forEach(g => {
-                const scoreEl = document.getElementById(`score-${g}`);
-                if (scoreEl) scoreEl.innerText = scores[g.toUpperCase()];
+                const total = (counters[g.toUpperCase()].d) + (counters[g.toUpperCase()].n * 2);
+                document.getElementById(`total-${g}`).innerText = total;
             });
         }
 
@@ -272,38 +214,47 @@
             else if(currentMonth < 0) { currentMonth=11; currentYear--; }
             renderCalendar();
         }
-
-        function goToCurrentMonth() {
-            const n = new Date(); currentMonth = n.getMonth(); currentYear = n.getFullYear();
-            renderCalendar();
+        
+        function goToCurrentMonth() { 
+            const n = new Date(); currentMonth = n.getMonth(); currentYear = n.getFullYear(); 
+            renderCalendar(); 
             setTimeout(() => {
-                const el = document.querySelector('.row-today');
-                if(el) el.scrollIntoView({behavior:'smooth', block:'center'});
+                const todayRow = document.querySelector('.row-today');
+                if(todayRow) todayRow.scrollIntoView({behavior:'smooth', block:'center'});
             }, 300);
         }
 
-        function openSettings() { document.getElementById('settingsModal').style.display = 'flex'; }
-        
+        function openSettings() {
+            document.getElementById('settingsInputs').innerHTML = ['A', 'B', 'C', 'D'].map(g => `
+                <div style="display:flex; justify-content:space-between; margin-bottom:15px; align-items:center;">
+                    <label style="font-weight:bold;">فوج ${g}</label>
+                    <select id="start${g}" style="padding:10px; border-radius:10px; border:none; box-shadow:inset 2px 2px 5px #ccc;">
+                        ${SHIFTS.map(s => `<option value="${s.code}">${s.label}</option>`).join('')}
+                    </select>
+                </div>
+            `).join('');
+            document.getElementById('settingsModal').style.display = 'flex';
+        }
+
+        function closeSettings() { document.getElementById('settingsModal').style.display = 'none'; }
+
         function saveSettings() {
-            groupConfig.A = parseInt(document.getElementById('startA').value);
-            groupConfig.B = parseInt(document.getElementById('startB').value);
-            groupConfig.C = parseInt(document.getElementById('startC').value);
-            groupConfig.D = parseInt(document.getElementById('startD').value);
-            currentYear = parseInt(document.getElementById('settingYear').value);
-            localStorage.setItem('shiftDataMaster', JSON.stringify({config: groupConfig, view: {year: currentYear, month: currentMonth}}));
-            document.getElementById('settingsModal').style.display = 'none';
+            ['A','B','C','D'].forEach(g => groupConfig[g] = parseInt(document.getElementById(`start${g}`).value));
+            referenceDate = new Date(); referenceDate.setHours(0,0,0,0);
+            localStorage.setItem('shiftData_vFinal', JSON.stringify({ config: groupConfig, refDate: referenceDate.getTime() }));
+            closeSettings(); 
             renderCalendar();
         }
 
-        function loadSettings() {
-            const saved = localStorage.getItem('shiftDataMaster');
+        window.onload = () => {
+            const saved = localStorage.getItem('shiftData_vFinal');
             if(saved) {
                 const data = JSON.parse(saved);
-                groupConfig = data.config;
-                currentYear = data.view.year;
+                groupConfig = data.config; referenceDate = new Date(data.refDate);
             }
-            document.getElementById('settingYear').value = currentYear;
-        }
+            renderCalendar();
+        };
     </script>
 </body>
 </html>
+
