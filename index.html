@@ -18,6 +18,7 @@
             
             /* ألوان مشتركة */
             --primary: #6c757d; /* رمادي */
+            
             --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
 
@@ -59,7 +60,7 @@
         .app-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* ==================== 1. تصميم نظام المناوبات (الواجهة القديمة الفاتحة) ==================== */
+        /* ==================== 1. تصميم نظام المناوبات ==================== */
         #shift-app {
             background-color: var(--bg-light);
             min-height: 100vh;
@@ -136,7 +137,7 @@
         
         .txt-layl { color: #dc2626; } .txt-nahar { color: #1d4ed8; } 
 
-        /* ==================== 2. تصميم الحاسبة الذكية والترقيات (الداكن العصري) ==================== */
+        /* ==================== 2. تصميم الحاسبة الذكية والترقيات ==================== */
         #career-app {
             background-color: var(--bg-dark);
             background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 80%);
@@ -182,10 +183,11 @@
         .modal-box-light { background: #f8fafc; padding: 25px; border-radius: 25px; width: 90%; max-width: 350px; max-height: 80vh; overflow-y: auto; color: #334155; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
         .modal-box-dark { background: #1e293b; padding: 25px; border-radius: 24px; width: 90%; max-width: 400px; max-height: 85vh; overflow-y: auto; color: #f1f5f9; border: 1px solid #475569; box-shadow: 0 25px 60px rgba(0,0,0,0.7); }
 
+        /* عنصر في قائمة العمال */
         .worker-item-light {
             background: white; padding: 12px; margin-bottom: 8px; border-radius: 12px; 
             display: flex; justify-content: space-between; align-items: center; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer; border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;
         }
 
         .promo-card-item { 
@@ -326,8 +328,9 @@
     <div id="workersListModal" class="modal">
         <div class="modal-box-light">
             <h3 style="text-align:center; margin-bottom:15px; color:#1e3a8a;">قائمة العمال</h3>
-            <div id="workersListSimpleContainer" style="max-height:300px; overflow-y:auto;"></div>
-            <button class="btn-top-control" style="width:100%; margin-top:15px;" onclick="document.getElementById('workersListModal').style.display='none'">إغلاق</button>
+            <div id="workersListSimpleContainer" style="max-height:300px; overflow-y:auto; padding-right:5px;"></div>
+            <button class="btn-top-control" style="width:100%; margin-top:10px; background:#10b981; color:white;" onclick="addNewWorkerPrompt()">+ إضافة عامل جديد</button>
+            <button class="btn-top-control" style="width:100%; margin-top:10px; background:#e2e8f0;" onclick="document.getElementById('workersListModal').style.display='none'">إغلاق</button>
         </div>
     </div>
 
@@ -384,16 +387,11 @@
             return new Date(dateStr);
         }
 
-        // دالة لضبط قيود التواريخ في حقول الإدخال
         function setDateConstraints() {
             const today = new Date();
             const todayStr = today.toISOString().split('T')[0];
-
-            // 1. حقل تاريخ التعيين (in-rec): الحد الأقصى هو اليوم
             const recInput = document.getElementById('in-rec');
             if (recInput) recInput.setAttribute('max', todayStr);
-
-            // 2. حقل تاريخ الميلاد (in-birth): الحد الأقصى هو (اليوم - 18 سنة)
             const birthInput = document.getElementById('in-birth');
             if (birthInput) {
                 const minAgeDate = new Date();
@@ -424,7 +422,6 @@
                         loadCareerData();
                     }
                 }
-                // تفعيل قيود التاريخ عند الانتقال للحاسبة
                 setDateConstraints();
             }
         }
@@ -498,9 +495,45 @@
         function openWorkersList() {
             const container = document.getElementById('workersListSimpleContainer'); container.innerHTML = '';
             workersData.forEach((w, i) => {
-                container.innerHTML += `<div class="worker-item-light" onclick="openWorkerHistory(${i})"><span style="font-weight:700; color:#334155;">${w.name || 'عامل ' + w.id}</span><span style="color:#3b82f6; font-weight:bold;">✎ تعديل</span></div>`;
+                container.innerHTML += `
+                <div class="worker-item-light" style="padding:10px; display:flex; align-items:center; gap:10px;">
+                    <div style="flex:1; cursor:pointer;" onclick="openWorkerHistory(${i})">
+                        <span style="font-weight:700; color:#334155;">${w.name || 'عامل ' + w.id}</span>
+                    </div>
+                    <div style="display:flex; gap:5px;">
+                        <button class="btn-action-mini btn-blue" onclick="editWorkerName(${i})">✏️</button>
+                        <button class="btn-action-mini btn-red" onclick="deleteWorker(${i})">🗑️</button>
+                    </div>
+                </div>`;
             });
             document.getElementById('workersListModal').style.display = 'flex';
+        }
+
+        function addNewWorkerPrompt() {
+            const name = prompt("أدخل اسم العامل الجديد:");
+            if (name && name.trim() !== "") {
+                const newId = workersData.length > 0 ? Math.max(...workersData.map(w => w.id)) + 1 : 1;
+                workersData.push({ id: newId, name: name.trim(), history: [] });
+                saveAllWorkers();
+                openWorkersList();
+            }
+        }
+
+        function editWorkerName(index) {
+            const newName = prompt("أدخل الاسم الجديد:", workersData[index].name);
+            if(newName && newName.trim() !== "") {
+                workersData[index].name = newName.trim();
+                saveAllWorkers();
+                openWorkersList();
+            }
+        }
+
+        function deleteWorker(index) {
+            if(confirm("هل أنت متأكد من حذف هذا العامل؟ سيتم حذف جميع سجلاته.")) {
+                workersData.splice(index, 1);
+                saveAllWorkers();
+                openWorkersList();
+            }
         }
 
         function openWorkerHistory(index) {
