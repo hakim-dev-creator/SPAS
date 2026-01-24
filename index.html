@@ -138,11 +138,16 @@
         .txt-layl { color: #dc2626; } .txt-nahar { color: #1d4ed8; } 
 
         /* ==================== 2. تصميم الحاسبة الذكية والترقيات ==================== */
-        #career-app {
-            background-color: var(--bg-dark);
-            background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 80%);
-            min-height: 100vh; padding: 20px; color: var(--text-dark-main);
-        }
+#career-app {
+    background-color: var(--bg-dark);
+    /* تعديل الخلفية لتكون ثابتة ومريحة للعين */
+    background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    padding: 30px 20px 100px 20px; /* زيادة التباعد العلوي والسفلي */
+    color: var(--text-dark-main);
+    box-sizing: border-box;
+}
 
         /* أزرار 3D */
         .btn-3d-action {
